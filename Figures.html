@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Figures</title>
+    <style>
+      body, html {
+        background: #c9c9c9;
+        margin: 0;
+        min-height: 100%;
+        height: 100%;
+      }      
+      div{
+        margin-bottom: 5px;
+      }
+      #canvasDiv{
+        background: #c9c9c9;
+        padding-left: 20px;
+      }
+      #canvas{
+        height: 500px;
+        width:  800px;
+        background: #ffffff;
+      }
+      #div1{
+        margin-left: 20px;
+        margin-top: 10px;
+      }
+      #sCircle{
+        margin-left: 50px;
+      }
+      #figuresS{
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="div1">
+      <div>
+        Point 1
+        x: <input type="text" readonly id="xPoint1">
+        y: <input type="text" readonly id="yPoint1">
+      </div>
+      <div>
+        Point 2
+        x: <input type="text" readonly id="xPoint2">
+        y: <input type="text" readonly id="yPoint2">
+      </div>
+      <div>
+        Point 3
+        x: <input type="text" readonly id="xPoint3">
+        y: <input type="text" readonly id="yPoint3">
+      </div>
+      <div id="figuresS">
+        <div>
+            S Parallelogram: <input type="text" readonly id="sParallelogram">
+         </div>
+         <div>
+            S Circle: <input type="text" readonly id="sCircle">
+        </div>
+      </div>
+
+      <div id="buttons">
+        <input type="button" onclick="reset()" value="Reset">
+        <input type="button" onclick="about()" value="About">
+      </div>
+    </div>
+    <div id="canvasDiv">
+      <canvas id="canvas" width="800" height="500"></canvas>
+    </div>
+
+<script>
+    var sParallelogram = document.getElementById("sParallelogram");
+    var canvas = document.getElementById('canvas');
+    var canvasContext = canvas.getContext('2d');
+    var canvasPosition = getPosition(canvas);
+    var mouseX = 0;
+    var mouseY = 0;
+    var mouseDown;
+    var positionX;
+    var positionY;
+    const pointColor = "red";
+    const pointRadius = 5.5;
+    const lineWidth = 5;
+    const parallelogramColor =  "blue";
+    const circleColor = "yellow";
+
+    class Point{
+        constructor(x, y){
+            this.coordX = x;
+            this.coordY = y;
+        }
+        setPoint(coordX, coordY){
+            this.coordX = coordX;
+            this.coordY = coordY;
+        }
+    }
+
+    class RedPoint extends Point{
+        #pointColor = pointColor;
+        #pointRadius = pointRadius;
+        
+        minClickX;
+        minClickY;
+        maxClickX;
+        maxClickY;
+        exist;
+
+        constructor(coordX, coordY, inputX, inputY){
+            super(coordX, coordY);
+            this.inputX = inputX;
+            this.inputY = inputY;
+        }
+
+        setPoint(coordX, coordY, exist){
+            super.setPoint(coordX, coordY);
+            
+            let rad = 6;
+            this.exist = exist;
+            this.minClickX = Number(this.coordX)-rad;
+            this.minClickY = Number(this.coordY)-rad;
+            this.maxClickX = Number(this.coordX)+rad;
+            this.maxClickY = Number(this.coordY)+rad;
+
+            document.getElementById(this.inputX).value = coordX;
+            document.getElementById(this.inputY).value = coordY;
+        }
+
+        drawPoint(){
+            canvasContext.beginPath();
+            canvasContext.arc(this.coordX, this.coordY, this.#pointRadius, 0, Math.PI*2);
+            canvasContext.fillStyle = this.#pointColor;
+            canvasContext.fill();
+            canvasContext.closePath();
+        }
+    }
+
+    canvas.addEventListener('mousemove', mousePosition, false);
+    canvas.addEventListener('mousedown', createPoint, false);
+    canvas.addEventListener('mouseup', changePointPosition, false);
+    
+    point1 = new RedPoint(0,0, 'xPoint1', 'yPoint1');
+    point2 = new RedPoint(0,0, 'xPoint2', 'yPoint2');
+    point3 = new RedPoint(0,0, 'xPoint3', 'yPoint3');
+    point4 = new Point(0,0,);
+    
+    pointCenter = new Point(0,0); 
+
+    function getPosition(e) {
+        var xPosition = 0;
+        var yPosition = 0;
+        
+        while (e) {
+          xPosition += (e.offsetLeft - e.scrollLeft + e.clientLeft);
+          yPosition += (e.offsetTop - e.scrollTop + e.clientTop);
+          e = e.offsetParent;
+        }
+        return {
+          x: xPosition,
+          y: yPosition
+        };
+      }
+
+    function mousePosition(e){
+        positionX = e.clientX - canvasPosition.x;
+        positionY = e.clientY - canvasPosition.y;
+        
+        if(mouseDown = true){
+            if(point1.exist == false){
+
+                updateRedPoint(point1, positionX, positionY, false, true);
+                
+                if(point2.coordX != 0 && point2.coordY != 0){
+                    
+                    point2.drawPoint();
+                   
+                    if(point3.coordX != 0 && point3.coordY != 0 ){
+                        point3.drawPoint();
+                        drawFigures(point1, point2, point3)
+                    }
+                }
+            }
+
+            else if(point1.exist == true && point2.exist == false){
+               
+                updateRedPoint(point2, positionX, positionY, false, true);
+                point1.drawPoint();
+                
+                if(point2.coordX != 0 && point2.coordY != 0 && point3.coordX != 0 && point3.coordY != 0 ){
+                    point1.drawPoint();
+                    point3.drawPoint();
+                    drawFigures(point1, point2, point3)
+                }
+            }
+
+            else if(point1.exist == true && point2.exist == true && point3.exist == false){
+               
+                updateRedPoint(point3, positionX, positionY, false, true);
+                
+                if(point2.coordX != 0 && point2.coordY != 0 && point3.coordX != 0 && point3.coordY != 0 ){
+                    point1.drawPoint();
+                    point2.drawPoint();
+                    drawFigures(point1, point2, point3)
+                }
+            }
+        }
+    }
+
+    function createPoint(event) {
+        if (event.button == 0) {
+            
+            mouseDown = true;
+            
+            var xPositionCheckPoint1 = point1.minClickX < positionX && positionX < point1.maxClickX;
+            var yPositionCheckPoint1 = point1.minClickY < positionY && positionY < point1.maxClickY;
+
+            var xPositionCheckPoint2 = point2.minClickX < positionX && positionX < point2.maxClickX;
+            var yPositionCheckPoint2 = point2.minClickY < positionY && positionY < point2.maxClickY;
+            
+            var xPositionCheckPoint3 = point3.minClickX < positionX && positionX < point3.maxClickX;
+            var yPositionCheckPoint3 = point3.minClickY < positionY && positionY < point3.maxClickY;
+
+            var checkPositionPoint1 = xPositionCheckPoint1 && yPositionCheckPoint1;
+            var checkPositionPoint2 = xPositionCheckPoint2 && yPositionCheckPoint2;
+            var checkPositionPoint3 = xPositionCheckPoint3 && yPositionCheckPoint3;
+
+            if(point1.coordX == 0 && 0 == point1.coordY){
+                updateRedPoint(point1, positionX, positionY, true);
+            }
+            else if(checkPositionPoint1){
+                point1.setPoint(positionX, positionY, false);
+            }
+            else if(point2.coordX == 0 && point2.coordY == 0){
+                updateRedPoint(point2, positionX, positionY, true, false);
+            }
+            else if(checkPositionPoint2){
+                point2.setPoint(positionX, positionY, false);
+            }
+            else if(point3.coordX == 0 && point3.coordY == 0){
+                updateRedPoint(point3, positionX, positionY, true, false);
+            }
+            else if(checkPositionPoint3){
+                point3.setPoint(positionX, positionY, false);
+            }
+        }
+    }
+
+    function changePointPosition(){
+        
+        mouseDown = false;
+        
+        if(point1.exist == false){
+            updateRedPoint(point1, positionX, positionY, true, false);
+        }
+        else if(point2.exist == false){
+            updateRedPoint(point2, positionX, positionY, true, false);
+        }
+        else if(point3.exist == false){
+            updateRedPoint(point3, positionX, positionY, true, false);
+        }
+    }
+
+    function drawParallelogram(point1, point2, point3){
+        
+        getPoint4(point1, point2, point3);
+
+        var parallelogramS;
+        
+        var d1 = MathSqr(point1.coordX, point3.coordX, point1.coordY, point3.coordY);
+        var d2 = MathSqr(point2.coordX, point4.coordX, point2.coordY, point4.coordY);
+
+        var sideA = MathSqr(point1.coordX, point2.coordX, point1.coordY, point2.coordY);
+        var sideB = MathSqr(point2.coordX, point3.coordX, point2.coordY, point3.coordY);
+
+        var arcCoss = ((Math.pow(sideB, 2) + Math.pow(sideA, 2)) - Math.pow(d2, 2)) / (2 * sideB * sideA);
+
+        var angleB = Math.acos(arcCoss) * 180/Math.PI; 
+        var angleA = 180-angleB; 
+
+        canvasContext.beginPath();
+        canvasContext.moveTo(Number(point1.coordX), Number(point1.coordY));
+        canvasContext.lineTo(Number(point2.coordX), Number(point2.coordY));
+        canvasContext.lineTo(Number(point3.coordX), Number(point3.coordY));
+        canvasContext.lineTo(Number(point4.coordX), Number(point4.coordY));
+        canvasContext.lineTo(Number(point1.coordX), Number(point1.coordY));
+        
+        canvasContext.lineWidth = lineWidth;
+        canvasContext.strokeStyle = parallelogramColor;
+        
+        canvasContext.stroke();
+        canvasContext.closePath();
+
+        pointCenter.setPoint((Number(point1.coordX)/2)+(Number(point3.coordX)/2), (Number(point1.coordY)/2)+(Number(point3.coordY)/2), true);
+        
+        if(angleA == 90){        
+            parallelogramS = sideA * sideB;
+            sParallelogram.value = parallelogramS;
+        }
+        else{                      
+            var sinA = Math.sin((angleA*Math.PI)/180);
+            var parallelogramH = sideB * sinA;
+            parallelogramS = sideA * parallelogramH;
+            sParallelogram.value = parallelogramS;
+        }
+        return parallelogramS;
+    }
+
+    function MathSqr(x1, x2, y1, y2){
+
+        return Math.sqrt(((Number(x1) - Number(x2)) ** 2) + ((Number(y1) - Number(y2)) ** 2))
+    }
+
+    function drawCircle(s){
+        var radiusCircle = Math.sqrt(s/Math.PI); 
+
+        var circleX = pointCenter.coordX;
+        var circleY = pointCenter.coordY;
+        
+        canvasContext.beginPath();
+        
+        canvasContext.lineWidth = lineWidth;
+        canvasContext.strokeStyle = circleColor;
+        
+        canvasContext.arc(circleX, circleY, radiusCircle, 0, 2*Math.PI, false);
+        canvasContext.stroke();
+        canvasContext.closePath();
+        
+        document.getElementById("sCircle").value = s; 
+    }
+
+    function getPoint4(point1, point2, point3){
+        
+        let pointO_X = getPointO(Number(point1.coordX), Number(point3.coordX));
+        let pointO_Y = getPointO(Number(point1.coordY), Number(point3.coordY));
+
+        point4.setPoint((pointO_X*2)-Number(point2.coordX),(pointO_Y*2)-Number(point2.coordY));
+    }
+
+    function getPointO(point1, point3){
+        let pointO = (point1 + point3)/2;
+        return pointO;
+    }
+
+    function updateRedPoint(point, positionX, positionY, exist, clear){
+        if(clear){
+            clearCanvas();
+        }
+        point.setPoint(positionX, positionY, exist);
+        point.drawPoint();
+        if(point1.exist == true && point2.exist == true && point3.exist == true){
+            drawFigures(point1, point2, point3)
+        }
+    }
+
+    function drawFigures(point1, point2, point3){
+        var parallelogramS = drawParallelogram(point1, point2, point3);
+        drawCircle(parallelogramS)
+    }
+
+    function clearCanvas(){
+        canvasContext.beginPath();
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        canvasContext.closePath();
+    }
+
+    function reset(){
+        clearCanvas();
+
+        document.getElementById("sParallelogram").value = '';
+        document.getElementById("sCircle").value  = '';
+        document.getElementById("xPoint1").value  = '';
+        document.getElementById("yPoint1").value  = '';
+        document.getElementById("xPoint2").value  = '';
+        document.getElementById("yPoint2").value  = '';
+        document.getElementById("xPoint3").value  = '';
+        document.getElementById("yPoint3").value  = '';
+
+        point1 = new RedPoint(0,0,'xPoint1', 'yPoint1');
+        point2 = new RedPoint(0,0,'xPoint2', 'yPoint2');
+        point3 = new RedPoint(0,0,'xPoint3', 'yPoint3');
+    }
+    function about(){
+        alert("App Name: Figures\n\nAbout: Set three arbitrary points on the white canvas."+
+        " Based on these points, a parallelogram and a circle will be create. "+
+        "The application automatically calculates the area of these shapes. "+
+        "\nNote: Set points can be moved, to do this, hold LMB and move the point..\n\nAuthor: Polienko Serhii");
+    }
+        </script>
+    </body>
+</html>
